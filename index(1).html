@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Placement Readiness Check</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1B2A4A; --paper:#FAF7F2; --gold:#B8862E; --slate:#6B7280;
+    --line:#E3DDD1; --pass:#2F6B4F; --warn:#B54834; --card:#FFFFFF;
+    box-sizing:border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ink:#EDE7DA; --paper:#151A24; --gold:#D6A94A; --slate:#9AA3B2;
+      --line:#2A3140; --pass:#7FD6A6; --warn:#E88A6F; --card:#1D2230;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ink:#EDE7DA; --paper:#151A24; --gold:#D6A94A; --slate:#9AA3B2;
+    --line:#2A3140; --pass:#7FD6A6; --warn:#E88A6F; --card:#1D2230;
+  }
+  html{scroll-padding-top: env(safe-area-inset-top, 0px);}
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    min-height:100%; display:flex; justify-content:center;
+  }
+  .wrap{width:100%; max-width:620px; padding:32px 20px 60px;}
+  header{margin-bottom:28px;}
+  .kicker{font-size:13px; color:var(--slate); letter-spacing:.02em;}
+  h1{
+    font-family:'Fraunces',Georgia,serif; font-weight:600;
+    font-size:clamp(26px,5vw,34px); line-height:1.15; margin:6px 0 10px;
+  }
+  .sub{color:var(--slate); font-size:15px; line-height:1.5; max-width:56ch;}
+
+  .progress-rail{height:4px; background:var(--line); border-radius:2px; margin:26px 0 30px; overflow:hidden;}
+  .progress-fill{height:100%; background:var(--gold); width:0%; transition:width .35s ease;}
+  .progress-label{font-size:13px; color:var(--slate); margin-top:8px;}
+
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:10px;
+    padding:26px 24px; margin-bottom:20px;
+  }
+  .qnum{font-size:13px; color:var(--gold); font-weight:600; margin-bottom:8px;}
+  .qtext{font-size:19px; line-height:1.4; margin:0 0 20px; font-weight:500;}
+  .options{display:flex; flex-direction:column; gap:10px;}
+  .opt{
+    display:flex; align-items:flex-start; gap:12px; text-align:left;
+    background:transparent; border:1px solid var(--line); border-radius:8px;
+    padding:13px 15px; font-family:inherit; font-size:15px; color:var(--ink);
+    cursor:pointer; line-height:1.4;
+  }
+  .opt:hover{border-color:var(--gold);}
+  .opt .tag{
+    flex:0 0 auto; width:22px; height:22px; border-radius:50%; border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--slate);
+    margin-top:1px;
+  }
+
+  .nav-row{display:flex; justify-content:space-between; align-items:center; margin-top:4px;}
+  .back-btn{background:none; border:none; color:var(--slate); font-size:14px; cursor:pointer; padding:8px 0; font-family:inherit;}
+  .back-btn:disabled{visibility:hidden;}
+
+  .start-btn, .cta-btn, .restart-btn{
+    display:inline-block; background:var(--ink); color:var(--paper);
+    border:none; border-radius:8px; padding:14px 24px; font-size:15px;
+    font-family:inherit; font-weight:600; cursor:pointer; text-decoration:none;
+  }
+
+  .screen{display:none;}
+  .screen.active{display:block;}
+
+  .result-badge{
+    font-family:'Fraunces',Georgia,serif; font-size:clamp(30px,7vw,44px); font-weight:600;
+    margin:6px 0 4px;
+  }
+  .result-score{color:var(--slate); font-size:15px; margin-bottom:18px;}
+  .result-note{font-size:15px; line-height:1.6; margin-bottom:22px; max-width:52ch;}
+  .breakdown{border-top:1px solid var(--line); padding-top:18px; margin-top:6px; margin-bottom:24px;}
+  .breakdown-row{display:flex; justify-content:space-between; font-size:14px; padding:7px 0; color:var(--slate); border-bottom:1px solid var(--line);}
+  .breakdown-row span:last-child{color:var(--ink); font-weight:500;}
+
+  .book-card{
+    background:var(--card); border:1px solid var(--gold); border-radius:10px;
+    padding:24px; margin-top:8px;
+  }
+  .book-card .label{font-size:12px; color:var(--gold); font-weight:600; margin-bottom:8px;}
+  .book-card h3{font-family:'Fraunces',Georgia,serif; font-size:20px; margin:0 0 10px; font-weight:600;}
+  .book-card p{font-size:14px; color:var(--slate); line-height:1.55; margin:0 0 18px;}
+
+  footer{text-align:center; margin-top:34px;}
+  .restart-btn{background:transparent; color:var(--slate); border:1px solid var(--line); font-weight:500; font-size:14px; padding:10px 18px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="kicker">Placement Made Easy — Readiness Check</div>
+    <h1 id="headline">Are you ready to walk into placement season?</h1>
+    <p class="sub" id="subtext">15 quick questions covering resume, interviews, aptitude, and negotiation. Answer honestly — this is for you, not a recruiter.</p>
+  </header>
+
+  <div id="screen-start" class="screen active">
+    <div class="card">
+      <p style="margin:0 0 18px; font-size:14px; color:var(--slate); line-height:1.6;">Takes about 3 minutes. At the end you'll get a readiness score and, if there are gaps, exactly where to close them.</p>
+      <button class="start-btn" onclick="startQuiz()">Start the check</button>
+    </div>
+  </div>
+
+  <div id="screen-quiz" class="screen">
+    <div class="progress-rail"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-label" id="progressLabel">Question 1 of 15</div>
+    <div class="card">
+      <div class="qnum" id="qnum">Q1</div>
+      <p class="qtext" id="qtext"></p>
+      <div class="options" id="optionsWrap"></div>
+    </div>
+    <div class="nav-row">
+      <button class="back-btn" id="backBtn" onclick="goBack()">← Previous</button>
+    </div>
+  </div>
+
+  <div id="screen-result" class="screen">
+    <div class="card">
+      <div class="kicker" id="resultKicker">Your result</div>
+      <div class="result-badge" id="resultGrade"></div>
+      <div class="result-score" id="resultScore"></div>
+      <p class="result-note" id="resultNote"></p>
+      <div class="breakdown" id="breakdown"></div>
+    </div>
+
+    <div class="book-card" id="bookCard" style="display:none;">
+      <div class="label">Recommended next step</div>
+      <h3>Placement Made Easy: 10 Steps for Success</h3>
+      <p>A practical, step-by-step framework covering exactly the areas your score flagged — resume, interviews, aptitude, and offer negotiation — built for MBA, BBA, B.Com and CA students.</p>
+      <a class="cta-btn" href="https://www.amazon.in/Placement-Made-Easy-steps-Success-ebook/dp/B0GZ2Z9JJF" target="_blank" rel="noopener">Get the book on Amazon</a>
+    </div>
+
+    <footer>
+      <button class="restart-btn" onclick="restartQuiz()">Retake the check</button>
+    </footer>
+  </div>
+
+</div>
+
+<script>
+const questions = [
+  {q:"Is your resume tailored to specific roles, or is it one generic version sent everywhere?", opts:[
+    {t:"Tailored — I adjust it per role/company", p:3},
+    {t:"Somewhat — I have 2-3 versions", p:2},
+    {t:"One generic resume for everything", p:1},
+    {t:"I haven't really built it out yet", p:0}]},
+  {q:"Can you explain your resume, point by point, without hesitating?", opts:[
+    {t:"Yes, confidently, with examples", p:3},
+    {t:"Mostly, with a little prep needed", p:2},
+    {t:"I'd struggle on a few points", p:1},
+    {t:"Not really", p:0}]},
+  {q:"Do you have a 60-second answer ready for \"Tell me about yourself\"?", opts:[
+    {t:"Yes, practiced and structured", p:3},
+    {t:"I have a rough idea", p:2},
+    {t:"I'd wing it", p:1},
+    {t:"No", p:0}]},
+  {q:"How well do you know the companies you plan to apply to?", opts:[
+    {t:"I research business model, news, and role fit before applying", p:3},
+    {t:"I check the basics — what they do", p:2},
+    {t:"I mostly rely on the brand name", p:1},
+    {t:"I haven't shortlisted companies yet", p:0}]},
+  {q:"Have you practiced answering behavioural questions using a structured method (e.g. STAR)?", opts:[
+    {t:"Yes, regularly, with real examples ready", p:3},
+    {t:"I know the method but haven't practiced much", p:2},
+    {t:"I've heard of it, that's about it", p:1},
+    {t:"No", p:0}]},
+  {q:"How comfortable are you in group discussions?", opts:[
+    {t:"Confident — I can initiate and steer one", p:3},
+    {t:"Comfortable participating, less on leading", p:2},
+    {t:"I get nervous and hold back", p:1},
+    {t:"I've never actually practiced a GD", p:0}]},
+  {q:"Where do your quantitative aptitude and reasoning skills currently stand?", opts:[
+    {t:"Strong — I score well in timed mock tests", p:3},
+    {t:"Decent, with a few weak topics", p:2},
+    {t:"Rusty, needs real practice", p:1},
+    {t:"I haven't taken a mock aptitude test", p:0}]},
+  {q:"Do you have 2-3 strong questions ready to ask the interviewer at the end?", opts:[
+    {t:"Yes, specific to the role and company", p:3},
+    {t:"One or two generic ones", p:2},
+    {t:"Not really thought about it", p:1},
+    {t:"No", p:0}]},
+  {q:"How is your LinkedIn profile set up right now?", opts:[
+    {t:"Complete, active, and recruiter-ready", p:3},
+    {t:"Set up but outdated or inactive", p:2},
+    {t:"Bare minimum", p:1},
+    {t:"Barely exists", p:0}]},
+  {q:"Do you understand how to read and negotiate a CTC offer (fixed vs variable, bonuses, etc.)?", opts:[
+    {t:"Yes, I can break down an offer and negotiate", p:3},
+    {t:"I understand the basics", p:2},
+    {t:"Vaguely — CTC numbers confuse me", p:1},
+    {t:"Not at all", p:0}]},
+  {q:"Have you done a mock interview with actual feedback (not just with a friend)?", opts:[
+    {t:"Yes, with a senior, mentor, or placement cell", p:3},
+    {t:"Once or twice, informally", p:2},
+    {t:"No, but I plan to", p:1},
+    {t:"No", p:0}]},
+  {q:"Can you explain a case study or business problem clearly under time pressure?", opts:[
+    {t:"Yes, I use a clear framework and stay calm", p:3},
+    {t:"I can attempt it but get flustered on time", p:2},
+    {t:"Only with a lot of prep time", p:1},
+    {t:"I've never really practiced case questions", p:0}]},
+  {q:"Do you follow up professionally after interviews (thank-you note, status check)?", opts:[
+    {t:"Yes, consistently", p:3},
+    {t:"Sometimes", p:2},
+    {t:"Rarely thought about it", p:1},
+    {t:"Never done it", p:0}]},
+  {q:"How well can you explain why you want this specific role, not just \"a job\"?", opts:[
+    {t:"Clearly — I have a specific, honest reason", p:3},
+    {t:"I have a rough reason", p:2},
+    {t:"I'd probably give a generic answer", p:1},
+    {t:"I haven't thought about it", p:0}]},
+  {q:"Overall, how would you rate your placement preparation right now?", opts:[
+    {t:"On track and confident", p:3},
+    {t:"Getting there, but gaps remain", p:2},
+    {t:"Behind — I know I need to start seriously", p:1},
+    {t:"Haven't started preparing", p:0}]}
+];
+
+let current = 0;
+let answers = new Array(questions.length).fill(null);
+
+function startQuiz(){
+  show('screen-quiz');
+  renderQuestion();
+}
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function renderQuestion(){
+  const q = questions[current];
+  document.getElementById('qnum').textContent = 'Question ' + (current+1);
+  document.getElementById('qtext').textContent = q.q;
+  document.getElementById('progressLabel').textContent = 'Question ' + (current+1) + ' of ' + questions.length;
+  document.getElementById('progressFill').style.width = ((current)/questions.length*100) + '%';
+  document.getElementById('backBtn').disabled = current === 0;
+
+  const wrap = document.getElementById('optionsWrap');
+  wrap.innerHTML = '';
+  const letters = ['A','B','C','D'];
+  q.opts.forEach((opt, i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.innerHTML = '<span class="tag">'+letters[i]+'</span><span>'+opt.t+'</span>';
+    btn.onclick = ()=> selectAnswer(i);
+    wrap.appendChild(btn);
+  });
+}
+
+function selectAnswer(i){
+  answers[current] = questions[current].opts[i].p;
+  if(current < questions.length - 1){
+    current++;
+    renderQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function goBack(){
+  if(current > 0){
+    current--;
+    renderQuestion();
+  }
+}
+
+function showResult(){
+  document.getElementById('progressFill').style.width = '100%';
+  const total = answers.reduce((a,b)=>a+b, 0);
+  const max = questions.length * 3;
+  const pct = Math.round((total/max)*100);
+
+  let grade, note, showBook;
+  if(pct >= 80){
+    grade = 'Placement Ready'; showBook = false;
+    note = "Strong across the board. Keep your prep sharp with regular mock interviews and stay current on company research as applications open.";
+  } else if(pct >= 60){
+    grade = 'Almost Ready'; showBook = false;
+    note = "You have a solid base with a few gaps — likely around structured interview answers, negotiation, or case practice. Tighten those and you're in good shape.";
+  } else if(pct >= 40){
+    grade = 'Needs Work'; showBook = true;
+    note = "You have some pieces in place, but there are real gaps across resume, interviews, or negotiation that could cost you offers if left unaddressed this close to placement season.";
+  } else {
+    grade = 'Not Ready — Start Now'; showBook = true;
+    note = "Most of the core placement skills — resume, interview structure, aptitude, negotiation — need focused work. The good news: with a clear 10-step plan, this is very fixable before placements begin.";
+  }
+
+  document.getElementById('resultGrade').textContent = grade;
+  document.getElementById('resultGrade').style.color = showBook ? 'var(--warn)' : 'var(--pass)';
+  document.getElementById('resultScore').textContent = 'Score: ' + total + ' / ' + max + ' (' + pct + '%)';
+  document.getElementById('resultNote').textContent = note;
+
+  document.getElementById('bookCard').style.display = showBook ? 'block' : 'none';
+  document.getElementById('breakdown').innerHTML = '';
+  show('screen-result');
+}
+
+function restartQuiz(){
+  current = 0;
+  answers = new Array(questions.length).fill(null);
+  show('screen-start');
+}
+</script>
+</body>
+</html>
